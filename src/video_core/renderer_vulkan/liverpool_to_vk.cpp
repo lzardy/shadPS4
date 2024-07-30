@@ -335,6 +335,10 @@ std::span<const vk::Format> GetAllFormats() {
         vk::Format::eR32Sfloat,
         vk::Format::eR32Sint,
         vk::Format::eR32Uint,
+        vk::Format::eR8G8B8A8Snorm,
+        vk::Format::eBc5SnormBlock,
+        vk::Format::eR16G16B16A16Sscaled,
+        vk::Format::eR16G16Sscaled,
     };
     return formats;
 }
