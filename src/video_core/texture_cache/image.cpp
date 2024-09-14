@@ -73,7 +73,6 @@ static vk::ImageUsageFlags ImageUsageFlags(const ImageInfo& info) {
         if (!info.IsBlockCoded() && !info.IsPacked()) {
             usage |= vk::ImageUsageFlagBits::eColorAttachment;
         }
-
         // In cases where an image is created as a render/depth target and cleared with compute,
         // we cannot predict whether it will be used as a storage image. A proper solution would
         // involve re-creating the resource with a new configuration and copying previous content
@@ -147,10 +146,15 @@ Image::Image(const Vulkan::Instance& instance_, Vulkan::Scheduler& scheduler_,
         break;
     }
 
+    constexpr auto tiling = vk::ImageTiling::eOptimal;
+    const auto supported_format = instance->GetSupportedFormat(info.pixel_format);
+    const auto properties = instance->GetPhysicalDevice().getImageFormatProperties(
+        supported_format, info.type, tiling, usage, flags);
+
     const vk::ImageCreateInfo image_ci = {
         .flags = flags,
         .imageType = info.type,
-        .format = instance->GetSupportedFormat(info.pixel_format),
+        .format = supported_format,
         .extent{
             .width = info.size.width,
             .height = info.size.height,
@@ -158,8 +162,8 @@ Image::Image(const Vulkan::Instance& instance_, Vulkan::Scheduler& scheduler_,
         },
         .mipLevels = static_cast<u32>(info.resources.levels),
         .arrayLayers = static_cast<u32>(info.resources.layers),
-        .samples = LiverpoolToVK::NumSamples(info.num_samples),
-        .tiling = vk::ImageTiling::eOptimal,
+        .samples = LiverpoolToVK::NumSamples(info.num_samples, properties.sampleCounts),
+        .tiling = tiling,
         .usage = usage,
         .initialLayout = vk::ImageLayout::eUndefined,
     };

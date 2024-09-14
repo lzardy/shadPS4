@@ -14,6 +14,7 @@ void Translator::EmitVectorMemory(const GcnInst& inst) {
     case Opcode::IMAGE_SAMPLE_LZ:
     case Opcode::IMAGE_SAMPLE:
     case Opcode::IMAGE_SAMPLE_L:
+    case Opcode::IMAGE_SAMPLE_L_O:
     case Opcode::IMAGE_SAMPLE_C_O:
     case Opcode::IMAGE_SAMPLE_B:
     case Opcode::IMAGE_SAMPLE_C_LZ_O:
@@ -117,6 +118,10 @@ void Translator::EmitVectorMemory(const GcnInst& inst) {
         return BUFFER_ATOMIC(AtomicOp::Add, inst);
     case Opcode::BUFFER_ATOMIC_SWAP:
         return BUFFER_ATOMIC(AtomicOp::Swap, inst);
+    case Opcode::BUFFER_ATOMIC_UMIN:
+        return BUFFER_ATOMIC(AtomicOp::Umin, inst);
+    case Opcode::BUFFER_ATOMIC_UMAX:
+        return BUFFER_ATOMIC(AtomicOp::Umax, inst);
     default:
         LogMissingOpcode(inst);
     }
@@ -280,6 +285,7 @@ void Translator::IMAGE_GATHER(const GcnInst& inst) {
     info.has_bias.Assign(flags.test(MimgModifier::LodBias));
     info.has_lod_clamp.Assign(flags.test(MimgModifier::LodClamp));
     info.force_level0.Assign(flags.test(MimgModifier::Level0));
+    info.has_offset.Assign(flags.test(MimgModifier::Offset));
     // info.explicit_lod.Assign(explicit_lod);
     info.gather_comp.Assign(std::bit_width(mimg.dmask) - 1);
 
